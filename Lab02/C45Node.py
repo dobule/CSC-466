@@ -100,26 +100,38 @@ class C45Node:
       return # TODO: Get key for max value in catHist
 
 
-   def __select_splitting_attribute(self, attr, data, threshold):
+   def __select_splitting_attribute(self, attr, data, categ, threshold):
       """
          Returns the attribute that is most apt for splitting the dataset.
       """
-      p_0 = self.__entropy(data)
-      p_a = {} 
 
+      # Find the entropy for the category in data
+      p0 = self.__entropy(data[categ[0]])
+      pA = {}
+      gain = {}
+      gainRatio = {}
+
+      # Find the entropy for each attribute in data
       for a in attr.keys():
-         p_a[a] = self.entropy(data) 
-      
+         pA[a] = self.__entropy(data[a]) 
+         gain[a] = p0 - pA[a]
+         gainRatio[a] = gain[a] / pA[a]
 
-      return
+      # Find attribute with besst gain ratio
+      best = # TODO
 
-   def __entropy(self):
-      return
+      if gain[best] > threshold:
+         return best
+      else:
+         return NULL
 
-   def __information_gain(self):
-      return
+   def __entropy(self, data):
+   """ Calculates the entropy of the array data """
 
-   def __information_gain_ratio(self):
+      hist = self.histogram(data)
+
+      for 
+
       return
 
    def __split_dataset(self, attr):
@@ -128,5 +140,14 @@ class C45Node:
    def __add_child(self):
       return
  
+   def __histogram(self, data):
+      """ Creates histogram from data array. Returns as dict """
+      hist = {}
 
-   
+      for val in data:
+         if val in hist.keys():
+            hist[val] = hist[val] + 1
+         else
+            hist[val] = 1
+  
+      return hist
