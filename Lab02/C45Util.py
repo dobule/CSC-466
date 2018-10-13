@@ -1,3 +1,8 @@
+# Name: Lucas Robertson
+# Class: CSC 466-01 (Fall 2018)
+# Filename: C45Util.py
+# Description: Provides utilities for parsing schema xml and csv data files
+
 import numpy as np
 import xml.etree.ElementTree as et
 
@@ -37,7 +42,7 @@ class C45Util:
     # Parses an .xml schema file and returns the categorizable variable and class labels
     # Returns a tuple with the structure:
     # ('Vote', ['Obama', 'Mccain'])
-    def parse_class(file_name, use_numbers=False):
+    def parse_categ(file_name, use_numbers=False):
         xml = et.parse(file_name).getroot().find("Category")
         dict = {}
         class_label = xml.attrib['name']
