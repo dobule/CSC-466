@@ -40,7 +40,7 @@ class C45Node:
       """
       return
 
-   def __C45_algorithm(self, attr, data, threshold):
+   def __C45_algorithm(self, attr, data, categ, threshold):
       """
          Constructs a decision tree using the C4.5 algorithm.
       """
@@ -57,7 +57,7 @@ class C45Node:
       splitAttr = self.__select_splitting_attribute(attr, data, threshold)
 
       if splitAttr == NULL: 
-         self.__set_to_leaf(data, categ)
+         self.__set_to_leaf(data[categ[0]], categ)
       else:
          # Construct tree
          self.attribute = splitAttr
@@ -71,7 +71,7 @@ class C45Node:
 
    def __set_to_leaf(self, data, categ, homogenous=False):
       """
-         Sets the 
+         Sets the current node to a leaf.
       """
 
       self.attribute = categ
@@ -92,18 +92,23 @@ class C45Node:
       catHist = {}
 
       for dataPoint in data: 
-         if dataPoint in catHist.keys:
+         if dataPoint in catHist.keys():
             catHist[dataPoint] = catHist[dataPoint] + 1
          else
             catHist[dataPoint] = 1
       
       return # TODO: Get key for max value in catHist
 
+
    def __select_splitting_attribute(self, attr, data, threshold):
       """
          Returns the attribute that is most apt for splitting the dataset.
       """
+      p_0 = self.__entropy(data)
+      p_a = {} 
 
+      for a in attr.keys():
+         p_a[a] = self.entropy(data) 
       
 
       return
