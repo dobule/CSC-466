@@ -16,7 +16,14 @@
           <decision end = "1" choice ="Obama" p = "0.99"/>
         </edge>
         <edge var = "Moderate" num="2">
-          <decision end = "1" choice = "Obama" p = "0.7"/>
+          <node var = "Age">
+             <edge var="18-50" num="1">
+               <decision end="1" choice="Obama" p = "0.75"/>
+             </edge>
+             <edge var="50+" num="2">
+               <decision end="2" choice="McCain" p = "0.25"/>
+             </edge>
+          </node>
         </edge>
         <edge var = "Conservative" num ="3">
           <decision end = "2" choice = "McCain" p = "0.95"/>

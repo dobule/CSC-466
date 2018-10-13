@@ -1,4 +1,4 @@
-# Name: Ryan Gelston
+# Name: Ryan Gelston, Lucas Robertson
 # Class: CSC 466-01 (Fall 2018)
 # Filename: C45Node.py
 # Description: Impliments the C4.5 classifier using information gain and
@@ -56,7 +56,7 @@ class C45Node:
       """
 
       if self.isLeaf == True:
-         return choice 
+         return choice
 
       return self.children[item[self.attribute]].classify(item)
 
@@ -126,11 +126,11 @@ class C45Node:
 
 
    def __add_child(self, val, attr, data, categ, threshold):
-      """ Adds a child to current node """ 
+      """ Adds a child to current node """
       node = C45Node(attr, data, categ, threshold)
       self.children[val] = node
       return
- 
+
 
    def __find_most_frequent_label(self, data):
       """
@@ -148,7 +148,7 @@ class C45Node:
 
       # Find the entropy for the category in data
       p0 = self.__entropy(data[categ[0]])
-      pA = {}  
+      pA = {}
       gain = {}
       gainRatio = {}
 
@@ -187,7 +187,7 @@ class C45Node:
          attr -- A tuple with the attribute name in index 0 and the values
             of the attribute as a list in index 1
 
-         data -- The standard data 
+         data -- The standard data
       """
 
       # Dictionary with keys from attr[1] and values being data dictionaries
@@ -198,9 +198,9 @@ class C45Node:
       # Initialize split data dictionaries
       for val in attr[1]:
          splitData[val] = {}
-            # Initialize keys in a data dictionary in splitData
-            for key in data.keys():
-               splitData[val][key] = []
+         # Initialize keys in a data dictionary in splitData
+         for key in data.keys():
+            splitData[val][key] = []
 
       # Iterate over indecies of data values
       for i in range(len(attrVals)):
