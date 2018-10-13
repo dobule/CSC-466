@@ -18,8 +18,6 @@ class C45Node:
             index across all attribute arrays. 
       """
       self.children = {}
-      self.data = data
-      self.attributes = attributes
       self.isLeaf = False
       return
 
@@ -50,10 +48,13 @@ class C45Node:
       return
 
    def __entropy(self):
+      return
 
    def __information_gain(self):
+      return
 
    def __information_gain_ratio(self):
+      return
 
    def __split_dataset(self, attr):
       return
