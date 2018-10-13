@@ -40,7 +40,7 @@ class C45Node:
       """
       return
 
-   def __C45_algorithm(self, attr, data, threshold):
+   def __C45_algorithm(self, attr, data, categ, threshold):
       """
          Constructs a decision tree using the C4.5 algorithm.
       """
@@ -57,7 +57,7 @@ class C45Node:
       splitAttr = self.__select_splitting_attribute(attr, data, threshold)
 
       if splitAttr == NULL: 
-         self.__set_to_leaf(data, categ)
+         self.__set_to_leaf(data[categ[0]], categ)
       else:
          # Construct tree
          self.attribute = splitAttr
@@ -71,7 +71,7 @@ class C45Node:
 
    def __set_to_leaf(self, data, categ, homogenous=False):
       """
-         Sets the 
+         Sets the current node to a leaf.
       """
 
       self.attribute = categ
@@ -92,29 +92,46 @@ class C45Node:
       catHist = {}
 
       for dataPoint in data: 
-         if dataPoint in catHist.keys:
+         if dataPoint in catHist.keys():
             catHist[dataPoint] = catHist[dataPoint] + 1
          else
             catHist[dataPoint] = 1
       
       return # TODO: Get key for max value in catHist
 
-   def __select_splitting_attribute(self, attr, data, threshold):
+
+   def __select_splitting_attribute(self, attr, data, categ, threshold):
       """
          Returns the attribute that is most apt for splitting the dataset.
       """
 
-      
+      # Find the entropy for the category in data
+      p0 = self.__entropy(data[categ[0]])
+      pA = {}
+      gain = {}
+      gainRatio = {}
 
-      return
+      # Find the entropy for each attribute in data
+      for a in attr.keys():
+         pA[a] = self.__entropy(data[a]) 
+         gain[a] = p0 - pA[a]
+         gainRatio[a] = gain[a] / pA[a]
 
-   def __entropy(self):
-      return
+      # Find attribute with besst gain ratio
+      best = # TODO
 
-   def __information_gain(self):
-      return
+      if gain[best] > threshold:
+         return best
+      else:
+         return NULL
 
-   def __information_gain_ratio(self):
+   def __entropy(self, data):
+   """ Calculates the entropy of the array data """
+
+      hist = self.histogram(data)
+
+      for 
+
       return
 
    def __split_dataset(self, attr):
@@ -123,5 +140,14 @@ class C45Node:
    def __add_child(self):
       return
  
+   def __histogram(self, data):
+      """ Creates histogram from data array. Returns as dict """
+      hist = {}
 
-   
+      for val in data:
+         if val in hist.keys():
+            hist[val] = hist[val] + 1
+         else
+            hist[val] = 1
+  
+      return hist
