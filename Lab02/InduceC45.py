@@ -61,7 +61,6 @@ class C45Node:
 
    def __construct_tree(self):
       return
- 
 
    
    
