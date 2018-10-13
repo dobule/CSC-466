@@ -19,7 +19,7 @@
           <decision end = "1" choice = "Obama" p = "0.7"/>
         </edge>
         <edge var = "Conservative" num ="3">
-          <decision end = "1" choice = "McCain" p = "0.95"/>
+          <decision end = "2" choice = "McCain" p = "0.95"/>
         </edge>
       </node>
     </edge>

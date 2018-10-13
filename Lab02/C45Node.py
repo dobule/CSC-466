@@ -1,35 +1,52 @@
 # Name: Ryan Gelston
 # Class: CSC 466-01 (Fall 2018)
 # Filename: C45Node.py
-# Description: Impliments the C4.5 classifier using information gain and 
+# Description: Impliments the C4.5 classifier using information gain and
 #  information gain ratio measures.
 
 import math
+import xml.etree.ElementTree as et
 
 class C45Node:
 
-   def __self__(self, attr, data, categ, threshold):
+   def __init__(self, attr, data, categ, threshold):
       """
          Constructor for C45Node
 
-         attr -- Dictionary that contains an array of categories for each 
-            attribute. 
+         attr -- Dictionary that contains an array of categories for each
+            attribute.
 
          data -- a dictionary with the attribute being the key in data and an
-            array of all values in that attribute. Each datapoint is in the same 
+            array of all values in that attribute. Each datapoint is in the same
             index across all attribute arrays.
 
          categ -- Tuple with attribute name in index 0 and an array of values
             that attribute in index 1. This parameter specifies the attribue
             that the decision tree classifies items into.
 
-         threshold -- Information gain of an attribute must be greater than 
+         threshold -- Information gain of an attribute must be greater than
             this number in order to split along that attribute.
       """
       self.children = {}
       self.isLeaf = False
       self.__C45_algorithm(attr, data, categ, threshold)
       return
+
+   def __init__(self, xml_node):
+       if xml_node.tag == "decision":
+           self.isLeaf = True
+           self.choice = xml_node.attrib['choice']
+           #self.p = xml_node.attrib['p']
+           return
+
+       self.attribute = xml_node.attrib['var']
+       self.isLeaf = False
+       self.children = {}
+
+       for edge in xml_node.getchildren():
+           self.children[edge.attrib['var']] = C45Node(edge.getchildren()[0])
+
+       return
 
    def classify(self, item):
       """
@@ -66,7 +83,7 @@ class C45Node:
       # Select splitting attribute
       splitAttr = self.__select_splitting_attribute(attr, data, threshold)
 
-      if splitAttr == None: 
+      if splitAttr == None:
          self.__set_to_leaf(data[categ[0]], categ)
       else:
          # Construct tree
@@ -137,7 +154,7 @@ class C45Node:
 
       # Find the entropy for each attribute in data
       for a in attr.keys():
-         pA[a] = self.__entropy(data[a]) 
+         pA[a] = self.__entropy(data[a])
          gain[a] = p0 - pA[a]
          gainRatio[a] = gain[a] / pA[a]
 
@@ -151,14 +168,14 @@ class C45Node:
 
 
    def __entropy(self, data):
-   """ Calculates the entropy of the array data """
+      """ Calculates the entropy of the array data """
 
       hist = self.__histogram(data)
       sumProb
 
       for val in hist.values():
          prob = float(val) / len(data)
-         sumProb = prob * math.log(prob, 2) 
+         sumProb = prob * math.log(prob, 2)
 
       return -1 * sumProb
 
@@ -206,7 +223,7 @@ class C45Node:
       for val in data:
          if val in hist.keys():
             hist[val] = hist[val] + 1
-         else
+         else:
             hist[val] = 1
-  
+
       return hist
