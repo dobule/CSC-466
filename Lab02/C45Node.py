@@ -51,8 +51,14 @@ class C45Node:
    def classify(self, item):
       """
          Takes a datapoint and classifies it using the built-in tree
+
+         item -- a dictionary or attribute : value pairs
       """
-      return
+
+      if self.isLeaf == True:
+         return choice 
+
+      return self.children[item[self.attribute]].classify(item)
 
    def to_xml_string(self, p=1.0):
       """
@@ -60,14 +66,15 @@ class C45Node:
       """
       return
 
+
    def __C45_algorithm(self, attr, data, categ, threshold):
       """
          Constructs a decision tree using the C4.5 algorithm.
       """
 
       # Check termination conditions
-      if self.__check_homogenous_data(attr, data, categ):
-         self.__set_to_leaf(data, categ, homogenous=True)
+      if self.__check_homogenous_data(data[categ[0]]):
+         self.__set_to_leaf(data[categ], categ, homogenous=True)
          return
       elif len(attr.keys()) == 0:
          self.__set_to_leaf(data, categ)
@@ -85,24 +92,45 @@ class C45Node:
          attr.pop(splitAttr, None)
 
          for val, dataSet in splitData:
-            self.__add_child(val, dataSet, attr)
+            self.__add_child(val, attr, dataSet, categ, threshold)
 
       return
 
-   def __set_to_leaf(self, data, categ, homogenous=False):
+
+   def __check_homogenous_data(data):
+      """ Returns True if all values in a list are equal. False otherwise. """
+      firstVal = data[0]
+      for val in data:
+         if val != firstVal:
+            return False
+      return True
+
+
+   def __set_to_leaf(self, data, homogenous=False):
       """
          Sets the current node to a leaf.
+
+         data -- An array of values
       """
 
-      self.attribute = categ
       self.isLeaf = True
 
       if homogenous == True:
-         self.value = data[0]
+         self.choice = data[0]
+         self.p = 1.0
       else:
-         self.value = self.__find_most_frequent_label(data)
+         self.choice = self.__find_most_frequent_label(data)
+         self.p = float(data.count(self.value)) / len(data)
 
       return
+
+
+   def __add_child(self, val, attr, data, categ, threshold):
+      """ Adds a child to current node """ 
+      node = C45Node(attr, data, categ, threshold)
+      self.children[val] = node
+      return
+ 
 
    def __find_most_frequent_label(self, data):
       """
@@ -120,7 +148,7 @@ class C45Node:
 
       # Find the entropy for the category in data
       p0 = self.__entropy(data[categ[0]])
-      pA = {}
+      pA = {}  
       gain = {}
       gainRatio = {}
 
@@ -138,6 +166,7 @@ class C45Node:
       else:
          return None
 
+
    def __entropy(self, data):
       """ Calculates the entropy of the array data """
 
@@ -150,13 +179,42 @@ class C45Node:
 
       return -1 * sumProb
 
+
    def __split_dataset(self, attr, data):
-      return
+      """
+         Splits data into multiple data sets based on attr tuple.
 
-   #def __add_child(self, attr, data, categ, threshold, p):
+         attr -- A tuple with the attribute name in index 0 and the values
+            of the attribute as a list in index 1
 
-      #for
-      #return
+         data -- The standard data 
+      """
+
+      # Dictionary with keys from attr[1] and values being data dictionaries
+      splitData = {}
+      # Remove the list of attributes from the data dictionary
+      attrVals = data.pop(attr[0])
+
+      # Initialize split data dictionaries
+      for val in attr[1]:
+         splitData[val] = {}
+            # Initialize keys in a data dictionary in splitData
+            for key in data.keys():
+               splitData[val][key] = []
+
+      # Iterate over indecies of data values
+      for i in range(len(attrVals)):
+         # Find the data set to add to
+         dataSet = splitData[attrVals[i]]
+
+         # Iterate over key values pairs in data and add data points
+         for key, val in data:
+            dataSet[key].append(data[i])
+
+         splitData[attrVals[i]] = dataSet
+
+      return splitData
+
 
    def __histogram(self, data):
       """ Creates histogram from data array. Returns as dict """
