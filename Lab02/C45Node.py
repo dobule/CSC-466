@@ -4,6 +4,8 @@
 # Description: Impliments the C4.5 classifier using information gain and 
 #  information gain ratio measures.
 
+import math
+
 class C45Node:
 
    def __self__(self, attr, data, categ, threshold):
@@ -26,6 +28,7 @@ class C45Node:
       """
       self.children = {}
       self.isLeaf = False
+      self.__C45_algorithm(attr, data, categ, threshold)
       return
 
    def classify(self, item):
@@ -34,7 +37,7 @@ class C45Node:
       """
       return
 
-   def to_xml_string(self):
+   def to_xml_string(self, p=1.0):
       """
          Returns the tree as a string formatted in XML
       """
@@ -56,7 +59,7 @@ class C45Node:
       # Select splitting attribute
       splitAttr = self.__select_splitting_attribute(attr, data, threshold)
 
-      if splitAttr == NULL: 
+      if splitAttr == None: 
          self.__set_to_leaf(data[categ[0]], categ)
       else:
          # Construct tree
@@ -89,15 +92,8 @@ class C45Node:
          Finds the most frequent label in array 'data'.
       """
 
-      catHist = {}
-
-      for dataPoint in data: 
-         if dataPoint in catHist.keys():
-            catHist[dataPoint] = catHist[dataPoint] + 1
-         else
-            catHist[dataPoint] = 1
-      
-      return # TODO: Get key for max value in catHist
+      hist = self.__histogram(data)
+      return max(hist, key=hist.get)
 
 
    def __select_splitting_attribute(self, attr, data, categ, threshold):
@@ -118,26 +114,31 @@ class C45Node:
          gainRatio[a] = gain[a] / pA[a]
 
       # Find attribute with besst gain ratio
-      best = # TODO
+      best = max(gainRatio, key=gainRatio.get)
 
       if gain[best] > threshold:
          return best
       else:
-         return NULL
+         return None
 
    def __entropy(self, data):
    """ Calculates the entropy of the array data """
 
-      hist = self.histogram(data)
+      hist = self.__histogram(data)
+      sumProb
+
+      for val in hist.values():
+         prob = float(val) / len(data)
+         sumProb = prob * math.log(prob, 2) 
+
+      return -1 * sumProb
+
+   def __split_dataset(self, attr, data):
+      return
+
+   def __add_child(self, attr, data, categ, threshold, p):
 
       for 
-
-      return
-
-   def __split_dataset(self, attr):
-      return
-
-   def __add_child(self):
       return
  
    def __histogram(self, data):
