@@ -99,3 +99,8 @@ class C45Util:
             "training": training,
             "validation": validation
         }
+
+    @staticmethod
+    def tree_from_xml(xml_filename):
+        xml = et.parse(xml_filename).getroot()
+        return C45Node(xml)
