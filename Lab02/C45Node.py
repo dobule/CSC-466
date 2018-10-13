@@ -1,6 +1,6 @@
 # Name: Ryan Gelston
 # Class: CSC 466-01 (Fall 2018)
-# Filename: InduceC45.py
+# Filename: C45Node.py
 # Description: Impliments the C4.5 classifier using information gain and 
 #  information gain ratio measures.
 
@@ -10,14 +10,19 @@ class C45Node:
       """
          Constructor for C45Node
 
-         attr -- dictionary that contains an array of categories for each 
-            attribute
+         attr -- Dictionary that contains an array of categories for each 
+            attribute. 
 
          data -- a dictionary with the attribute being the key in data and an
             array of all values in that attribute. Each datapoint is in the same 
             index across all attribute arrays.
 
-         cated -- a string that states the attribute to categorize
+         categ -- Tuple with attribute name in index 0 and an array of values
+            that attribute in index 1. This parameter specifies the attribue
+            that the decision tree classifies items into.
+
+         threshold -- Information gain of an attribute must be greater than 
+            this number in order to split along that attribute.
       """
       self.children = {}
       self.isLeaf = False
@@ -65,18 +70,25 @@ class C45Node:
       return
 
    def __set_to_leaf(self, data, categ, homogenous=False):
+      """
+         Sets the 
+      """
+
       self.attribute = categ
       self.isLeaf = True
 
       if homogenous == True:
          self.value = data[0]
       else:
-      
-         self.value = # TODO: Get key for max value in catHist
+         self.value = self.__find_most_frequent_label(data)
 
       return
 
    def __find_most_frequent_label(self, data):
+      """
+         Finds the most frequent label in array 'data'.
+      """
+
       catHist = {}
 
       for dataPoint in data: 
@@ -85,9 +97,15 @@ class C45Node:
          else
             catHist[dataPoint] = 1
       
-      return 
+      return # TODO: Get key for max value in catHist
 
    def __select_splitting_attribute(self, attr, data, threshold):
+      """
+         Returns the attribute that is most apt for splitting the dataset.
+      """
+
+      
+
       return
 
    def __entropy(self):
@@ -104,6 +122,6 @@ class C45Node:
 
    def __add_child(self):
       return
+ 
 
-   
    
