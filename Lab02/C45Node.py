@@ -154,11 +154,13 @@ class C45Node(object):
 
         return
 
+
     def __add_child(self, attr, data, categ, threshold, idx):
         """ Adds a child to current node """
         node = C45Node(attr, data, categ, threshold)
         self.children[idx] = node
         return
+
 
     @staticmethod
     def __find_most_frequent_label(data):
@@ -168,6 +170,7 @@ class C45Node(object):
 
         hist = C45Node.__histogram(data)
         return max(hist, key=hist.get)
+
 
     @staticmethod
     def __select_splitting_attribute(attr, data, categ, threshold):
@@ -187,10 +190,10 @@ class C45Node(object):
             gain[a] = p0 - pA[a]
             gainRatio[a] = gain[a] / pA[a]
 
-        # Find attribute with besst gain ratio
+        # Find attribute with best gain ratio
         best = max(gainRatio, key=gainRatio.get)
 
-        if abs(gain[best]) > threshold:
+        if gain[best] > threshold:
             return best
         else:
             return None
