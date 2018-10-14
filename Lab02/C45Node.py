@@ -27,10 +27,11 @@ class C45Node:
              threshold -- Information gain of an attribute must be greater than
                 this number in order to split along that attribute.
           """
-        self.children = {}
+        self.children = []
         self.isLeaf = False
         self.__C45_algorithm(attr, data, categ, threshold)
         return
+
 
     def __init__(self, xml_node):
         if xml_node.tag == "decision":
@@ -41,12 +42,13 @@ class C45Node:
 
         self.attribute = xml_node.attrib['var']
         self.isLeaf = False
-        self.children = {}
+        self.children = []
 
         for edge in xml_node.getchildren():
-            self.children[edge.attrib['var']] = C45Node(edge.getchildren()[0])
+            self.children.append(C45Node(edge.getchildren()[0]))
 
         return
+
 
     def classify(self, item):
         """
@@ -55,16 +57,41 @@ class C45Node:
            item -- a dictionary or attribute : value pairs
         """
 
-        if self.isLeaf == True:
-            return choice
+        node = self
 
-        return self.children[item[self.attribute]].classify(item)
+        while node.isLeaf == False:
+            node = node.children[item[node.attribute]].classify(item)
 
-    def to_xml_string(self, p=1.0):
+        return node.choice
+
+    def to_xml_string(self, treeName, attr):
         """
            Returns the tree as a string formatted in XML
         """
+
+        xmlRoot = et.Element("Tree", name=treeName)
+        C45Node.__to_xml_string_r(self, xmlRoot, attr)       
+
+        
         return
+
+    @staticmethod
+    def __to_xml_string_r(C45Root, xmlRoot, attr):
+        if C45Root.isLeaf == True:
+            return et.SubElement(xmlRoot, "decision",
+             choice=C45Root.choice, p=C45Root.p)
+
+        xmlChild = et.SubElement(xmlRoot, "node", 
+         choice=C45Root.attribute)
+
+         varArr = attr[C45Root.attribute]
+
+        for child in C45Root.children:
+            idxOfChild = C45Root.children.index(child)
+            xmlEdge = et.SubElement(xmlChild, "edge", var=varArr[idxOfChild],
+             num=idxOfChild+1)
+            C45Node.__to_xml_string(child, xmlEdge, attr)
+
 
     def __C45_algorithm(self, attr, data, categ, threshold):
         """
@@ -87,14 +114,17 @@ class C45Node:
         else:
             # Construct tree
             self.attribute = splitAttr
+            self.children = range(len(attr[splitAttr]))
             splitData = self.__split_dataset(data, splitAttr)
             attr.pop(splitAttr, None)
 
             for val, dataSet in splitData:
-                self.__add_child(val, attr, dataSet, categ, threshold)
+                self.children[attr[splitAttr].index(val)] = 
+                    C45Node(val, attr, dataSet, categ, threshold)
 
         return
 
+    @staticmethod
     def __check_homogenous_data(data):
         """ Returns True if all values in a list are equal. False otherwise. """
         firstVal = data[0]
@@ -121,10 +151,10 @@ class C45Node:
 
         return
 
-    def __add_child(self, val, attr, data, categ, threshold):
+    def __add_child(self, attr, data, categ, threshold, idx):
         """ Adds a child to current node """
         node = C45Node(attr, data, categ, threshold)
-        self.children[val] = node
+        self.children[idx] = node
         return
 
     def __find_most_frequent_label(self, data):
