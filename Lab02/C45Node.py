@@ -56,7 +56,7 @@ class C45Node:
         """
 
         if self.isLeaf == True:
-            return choice
+            return self.choice
 
         return self.children[item[self.attribute]].classify(item)
 
