@@ -27,7 +27,9 @@ class C45Node:
          threshold -- Information gain of an attribute must be greater than
             this number in order to split along that attribute.
       """
-      self.children = {}
+      # children are in a list. Their index is one less than the variables
+      # associated number  
+      self.children = []
       self.isLeaf = False
       self.__C45_algorithm(attr, data, categ, threshold)
       return
@@ -55,10 +57,12 @@ class C45Node:
          item -- a dictionary or attribute : value pairs
       """
 
-      if self.isLeaf == True:
-         return choice
+      node = self
 
-      return self.children[item[self.attribute]].classify(item)
+      while(not node.isLeaf):
+         node = node.children[item[node.attribute]]
+
+      return node.choice
 
    def to_xml_string(self, p=1.0):
       """
@@ -74,7 +78,7 @@ class C45Node:
 
       # Check termination conditions
       if self.__check_homogenous_data(data[categ[0]]):
-         self.__set_to_leaf(data[categ], categ, homogenous=True)
+         self.__set_to_leaf(data[categ[0]], categ, homogenous=True)
          return
       elif len(attr.keys()) == 0:
          self.__set_to_leaf(data, categ)
