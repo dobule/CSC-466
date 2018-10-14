@@ -65,18 +65,18 @@ class C45Node(object):
 
         return node.choice
 
-    def to_xml_string(self, treeName, attr):
+    def to_xml_tree(self, treeName, attr):
         """
-           Returns the tree as a string formatted in XML
+           Returns the tree as an xml element tree
         """
 
         xmlRoot = et.Element("Tree", name=treeName)
         C45Node.__to_xml_string_r(self, xmlRoot, attr)       
-        # TODO: Complete this method 
-        return
+        C45Util.__indent(xmlRoot)
+        return et.ElementTree(xmlRoot) 
 
     @staticmethod
-    def __to_xml_string_r(C45Root, xmlRoot, attr):
+    def __to_xml_tree_r(C45Root, xmlRoot, attr):
         if C45Root.isLeaf == True:
             return et.SubElement(xmlRoot, "decision",
              choice=C45Root.choice, p=C45Root.p)
@@ -190,7 +190,7 @@ class C45Node(object):
         # Find attribute with besst gain ratio
         best = max(gainRatio, key=gainRatio.get)
 
-        if gain[best] > threshold:
+        if abs(gain[best]) > threshold:
             return best
         else:
             return None
