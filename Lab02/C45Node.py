@@ -4,6 +4,7 @@
 # Description: Impliments the C4.5 classifier using information gain and
 #  information gain ratio measures.
 
+import numpy as np
 import math
 import xml.etree.ElementTree as et
 
@@ -44,7 +45,8 @@ class C45Node(object):
         self.children = []
 
         for edge in xml_node.getchildren():
-            self.children.append(C45Node(edge.getchildren()[0]))
+            newNode = C45Node()
+            self.children.append(newNode.build_from_xml(edge.getchildren()[0]))
 
         return
 
@@ -117,8 +119,9 @@ class C45Node(object):
             attr.pop(splitAttr, None)
 
             for val, dataSet in splitData:
-                self.children[attr[splitAttr].index(val)] = C45Node(val, attr, 
-                 dataSet, categ, threshold)
+                newNode = C45Node()
+                newNode.C45_algorithm(attr, dataSet, categ, threshold)
+                self.children[attr[splitAttr].index(val)] = newNode 
 
         return
 
@@ -145,7 +148,9 @@ class C45Node(object):
             self.p = 1.0
         else:
             self.choice = self.__find_most_frequent_label(data)
-            self.p = float(data.count(self.choice)) / len(data)
+            unique, counts = np.unique(data, return_counts=True)
+            countDict = dict(zip(unique, counts))
+            self.p = float(countDict[self.choice]) / len(data)
 
         return
 
