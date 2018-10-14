@@ -7,9 +7,9 @@
 import math
 import xml.etree.ElementTree as et
 
-class C45Node:
+class C45Node(object):
 
-    def __init__(self, attr, data, categ, threshold):
+    def __init__(self):
         """
              Constructor for C45Node
 
@@ -29,11 +29,10 @@ class C45Node:
           """
         self.children = []
         self.isLeaf = False
-        self.__C45_algorithm(attr, data, categ, threshold)
         return
 
 
-    def __init__(self, xml_node):
+    def build_from_xml(self, xml_node):
         if xml_node.tag == "decision":
             self.isLeaf = True
             self.choice = xml_node.attrib['choice']
@@ -71,8 +70,7 @@ class C45Node:
 
         xmlRoot = et.Element("Tree", name=treeName)
         C45Node.__to_xml_string_r(self, xmlRoot, attr)       
-
-        
+        # TODO: Complete this method 
         return
 
     @staticmethod
@@ -84,7 +82,7 @@ class C45Node:
         xmlChild = et.SubElement(xmlRoot, "node", 
          choice=C45Root.attribute)
 
-         varArr = attr[C45Root.attribute]
+        varArr = attr[C45Root.attribute]
 
         for child in C45Root.children:
             idxOfChild = C45Root.children.index(child)
@@ -93,7 +91,7 @@ class C45Node:
             C45Node.__to_xml_string(child, xmlEdge, attr)
 
 
-    def __C45_algorithm(self, attr, data, categ, threshold):
+    def C45_algorithm(self, attr, data, categ, threshold):
         """
            Constructs a decision tree using the C4.5 algorithm.
         """
@@ -107,7 +105,7 @@ class C45Node:
             return
 
         # Select splitting attribute
-        splitAttr = self.__select_splitting_attribute(attr, data, threshold)
+        splitAttr = self.__select_splitting_attribute(attr, data, categ, threshold)
 
         if splitAttr == None:
             self.__set_to_leaf(data[categ[0]], categ)
@@ -119,8 +117,8 @@ class C45Node:
             attr.pop(splitAttr, None)
 
             for val, dataSet in splitData:
-                self.children[attr[splitAttr].index(val)] = 
-                    C45Node(val, attr, dataSet, categ, threshold)
+                self.children[attr[splitAttr].index(val)] = C45Node(val, attr, 
+                 dataSet, categ, threshold)
 
         return
 
@@ -147,7 +145,7 @@ class C45Node:
             self.p = 1.0
         else:
             self.choice = self.__find_most_frequent_label(data)
-            self.p = float(data.count(self.value)) / len(data)
+            self.p = float(data.count(self.choice)) / len(data)
 
         return
 
@@ -157,28 +155,30 @@ class C45Node:
         self.children[idx] = node
         return
 
-    def __find_most_frequent_label(self, data):
+    @staticmethod
+    def __find_most_frequent_label(data):
         """
            Finds the most frequent label in array 'data'.
         """
 
-        hist = self.__histogram(data)
+        hist = C45Node.__histogram(data)
         return max(hist, key=hist.get)
 
-    def __select_splitting_attribute(self, attr, data, categ, threshold):
+    @staticmethod
+    def __select_splitting_attribute(attr, data, categ, threshold):
         """
            Returns the attribute that is most apt for splitting the dataset.
         """
 
         # Find the entropy for the category in data
-        p0 = self.__entropy(data[categ[0]])
+        p0 = C45Node.__entropy(data[categ[0]])
         pA = {}
         gain = {}
         gainRatio = {}
 
         # Find the entropy for each attribute in data
         for a in attr.keys():
-            pA[a] = self.__entropy(data[a])
+            pA[a] = C45Node.__entropy(data[a])
             gain[a] = p0 - pA[a]
             gainRatio[a] = gain[a] / pA[a]
 
@@ -190,19 +190,23 @@ class C45Node:
         else:
             return None
 
-    def __entropy(self, data):
+
+    @staticmethod
+    def __entropy(data):
         """ Calculates the entropy of the array data """
 
-        hist = self.__histogram(data)
-        sumProb
+        hist = C45Node.__histogram(data)
+        sumProb = 0
 
         for val in hist.values():
             prob = float(val) / len(data)
-            sumProb = prob * math.log(prob, 2)
+            sumProb = sumProb + prob * math.log(prob, 2)
 
         return -1 * sumProb
 
-    def __split_dataset(self, attr, data):
+
+    @staticmethod
+    def __split_dataset(attr, data):
         """
            Splits data into multiple data sets based on attr tuple.
 
@@ -212,32 +216,35 @@ class C45Node:
            data -- The standard data
         """
 
-        # Dictionary with keys from attr[1] and values being data dictionaries
-        splitData = {}
+        # An array the same length as attr[1] and values being data dictionaries
+        splitData = range(len(attr[1]))
         # Remove the list of attributes from the data dictionary
         attrVals = data.pop(attr[0])
 
         # Initialize split data dictionaries
-        for val in attr[1]:
-            splitData[val] = {}
+        for idx in range(len(splitData)):
+            dataPart = {}
             # Initialize keys in a data dictionary in splitData
             for key in data.keys():
-                splitData[val][key] = []
+                dataPart[key] = []
+            splitData[idx] = dataPart
 
         # Iterate over indecies of data values
         for i in range(len(attrVals)):
             # Find the data set to add to
-            dataSet = splitData[attrVals[i]]
+            dataSet = splitData[int(attrVals[i])]
 
             # Iterate over key values pairs in data and add data points
-            for key, val in data:
-                dataSet[key].append(data[i])
-
-            splitData[attrVals[i]] = dataSet
+            for key in data.keys():
+                dataSet[key].append(data[key][i])
+            
+            splitData[int(attrVals[i])] = dataSet
 
         return splitData
 
-    def __histogram(self, data):
+    
+    @staticmethod
+    def __histogram(data):
         """ Creates histogram from data array. Returns as dict """
         hist = {}
 

@@ -17,10 +17,10 @@
         </edge>
         <edge var = "Moderate" num="2">
           <node var = "Age">
-             <edge var="18-50" num="1">
+             <edge var="45-64" num="1">
                <decision end="1" choice="Obama" p = "0.75"/>
              </edge>
-             <edge var="50+" num="2">
+             <edge var="30-44" num="2">
                <decision end="2" choice="McCain" p = "0.25"/>
              </edge>
           </node>
