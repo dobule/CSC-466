@@ -17,9 +17,9 @@ class C45Node(object):
              attr -- Dictionary that contains an array of categories for each
                 attribute.
 
-             data -- a dictionary with the attribute being the key in data and an
-                array of all values in that attribute. Each datapoint is in the same
-                index across all attribute arrays.
+             data -- a dictionary with the attribute being the key in data 
+              and an array of all values in that attribute. Each datapoint 
+              is in the same index across all attribute arrays.
 
              categ -- Tuple with attribute name in index 0 and an array of values
                 that attribute in index 1. This parameter specifies the attribue
@@ -65,32 +65,63 @@ class C45Node(object):
 
         return node.choice
 
-    def to_xml_tree(self, treeName, attr):
+    def to_xml_tree(self, treeName, attr, categ):
         """
            Returns the tree as an xml element tree
         """
 
         xmlRoot = et.Element("Tree", name=treeName)
-        C45Node.__to_xml_string_r(self, xmlRoot, attr)       
-        C45Util.__indent(xmlRoot)
-        return et.ElementTree(xmlRoot) 
+        C45Node.__to_xml_tree_r(self, xmlRoot, attr, categ)       
+        C45Node.__indent_xml_tree(xmlRoot)
+        return et.ElementTree(xmlRoot)
+
 
     @staticmethod
-    def __to_xml_tree_r(C45Root, xmlRoot, attr):
+    def __to_xml_tree_r(C45Root, xmlRoot, attr, categ):
+       
+
         if C45Root.isLeaf == True:
-            return et.SubElement(xmlRoot, "decision",
-             choice=C45Root.choice, p=C45Root.p)
+            idxOfDecision = categ[1].index(C45Root.choice)
+            decision =  et.SubElement(xmlRoot, "decision", 
+                                      end=str(idxOfDecision + 1), 
+                                      choice=C45Root.choice, 
+                                      p=str(C45Root.p))
+            #decision.tail = spacing
+            return decision
 
         xmlChild = et.SubElement(xmlRoot, "node", 
          choice=C45Root.attribute)
+
 
         varArr = attr[C45Root.attribute]
 
         for child in C45Root.children:
             idxOfChild = C45Root.children.index(child)
-            xmlEdge = et.SubElement(xmlChild, "edge", var=varArr[idxOfChild],
-             num=idxOfChild+1)
-            C45Node.__to_xml_string(child, xmlEdge, attr)
+            xmlEdge = et.SubElement(xmlChild, "edge", 
+                                    var=str(varArr[idxOfChild]), 
+                                    num=str(idxOfChild+1))
+            #xmlEdge.text = spacing + '    '
+            #xmlEdge.tail = spacing + '  '
+            C45Node.__to_xml_tree_r(child, xmlEdge, attr, categ)
+
+        #xmlChild.text = spacing + '    ' 
+        #xmlChild.tail = spacing
+
+        return xmlChild
+
+    @staticmethod
+    def __indent_xml_tree(elem, level=0):
+        spacing = '\n' + level*'  '
+
+        if len(elem):
+            elem.text = spacing + '  '
+            elem.tail = spacing
+            children = list(elem)
+            for child in children:
+                C45Node.__indent_xml_tree(child, level+1)
+            children[-1].tail = spacing
+        else:
+            elem.tail = spacing
 
 
     def C45_algorithm(self, attr, data, categ, threshold):
@@ -100,7 +131,7 @@ class C45Node(object):
 
         # Check termination conditions
         if self.__check_homogenous_data(data[categ[0]]):
-            self.__set_to_leaf(data[categ], categ, homogenous=True)
+            self.__set_to_leaf(data[categ[0]], categ, homogenous=True)
             return
         elif len(attr.keys()) == 0:
             self.__set_to_leaf(data, categ)
@@ -109,19 +140,23 @@ class C45Node(object):
         # Select splitting attribute
         splitAttr = self.__select_splitting_attribute(attr, data, categ, threshold)
 
-        if splitAttr == None:
+        if splitAttr is None:
             self.__set_to_leaf(data[categ[0]], categ)
         else:
             # Construct tree
             self.attribute = splitAttr
             self.children = range(len(attr[splitAttr]))
-            splitData = self.__split_dataset(data, splitAttr)
-            attr.pop(splitAttr, None)
+            splitData = self.__split_dataset((splitAttr, attr[splitAttr]), data)
+            newAttr = attr.copy()
+            newAttr.pop(splitAttr, None)
 
-            for val, dataSet in splitData:
-                newNode = C45Node()
-                newNode.C45_algorithm(attr, dataSet, categ, threshold)
-                self.children[attr[splitAttr].index(val)] = newNode 
+            for i in range(len(splitData)):
+                if len(splitData) > 0:
+                    newNode = C45Node()
+                    newNode.C45_algorithm(newAttr, splitData[i], categ, threshold)
+                    self.children[i] = newNode 
+                else:
+                    self.children[i] = None
 
         return
 
@@ -134,7 +169,7 @@ class C45Node(object):
                 return False
         return True
 
-    def __set_to_leaf(self, data, homogenous=False):
+    def __set_to_leaf(self, data, categ, homogenous=False):
         """
            Sets the current node to a leaf.
 
@@ -144,7 +179,7 @@ class C45Node(object):
         self.isLeaf = True
 
         if homogenous == True:
-            self.choice = data[0]
+            self.choice = categ[1][data[0]]
             self.p = 1.0
         else:
             self.choice = self.__find_most_frequent_label(data)
@@ -183,15 +218,22 @@ class C45Node(object):
         pA = {}
         gain = {}
         gainRatio = {}
+        best = 0
+
+        print("Entropy of dataset: ", p0)
 
         # Find the entropy for each attribute in data
         for a in attr.keys():
-            pA[a] = C45Node.__entropy(data[a])
+            pA[a] = C45Node.__entropy(data[categ[0]], data[a])
             gain[a] = p0 - pA[a]
-            gainRatio[a] = gain[a] / pA[a]
+
+            print(a, pA[a], gain[a])
+            #gainRatio[a] = gain[a] / pA[a]
 
         # Find attribute with best gain ratio
-        best = max(gainRatio, key=gainRatio.get)
+        best = max(gain, key=gain.get)
+        print("Best: ", best, gain[best])
+        print()
 
         if gain[best] > threshold:
             return best
@@ -200,9 +242,30 @@ class C45Node(object):
 
 
     @staticmethod
-    def __entropy(data):
-        """ Calculates the entropy of the array data """
+    def __entropy(data, attr=None):
+        """ Calculates the entropy of the array data. """
+        if attr is None:
+            return C45Node.__entropy_aux(data)
+        else:
+            # Separate data by attr array value
+            datasets = {}
+            for i in range(len(data)):
+                if attr[i] in datasets.keys():
+                    datasets[attr[i]].append(data[i])
+                else:
+                    datasets[attr[i]] = []
+                    datasets[attr[i]].append(data[i]) 
 
+            avgEnt = 0
+            for ds in datasets.values():
+               avgEnt = (avgEnt + 
+                (float(len(ds)) / len(data) * C45Node.__entropy_aux(ds)))
+ 
+            return avgEnt
+
+
+    @staticmethod
+    def __entropy_aux(data):
         hist = C45Node.__histogram(data)
         sumProb = 0
 
@@ -227,7 +290,7 @@ class C45Node(object):
         # An array the same length as attr[1] and values being data dictionaries
         splitData = range(len(attr[1]))
         # Remove the list of attributes from the data dictionary
-        attrVals = data.pop(attr[0])
+        attrVals = data[attr[0]]
 
         # Initialize split data dictionaries
         for idx in range(len(splitData)):
