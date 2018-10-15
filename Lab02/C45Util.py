@@ -17,15 +17,18 @@ SPLIT_RATIO = 10
 #  ...
 # }
 def parse_data(file_name):
-    data = np.genfromtxt(file_name, delimiter=',', dtype=str, skip_header=3)
-    headers = np.genfromtxt(file_name, delimiter=',', dtype=str,  skip_footer=len(data) + 2)
+    data = np.genfromtxt(file_name, delimiter=',', 
+                         dtype=str, skip_header=3)
+    headers = np.genfromtxt(file_name, delimiter=',', dtype=str,  
+                            skip_footer=len(data) + 2)
     dict = {}
     for i in range(len(headers)):
         dict[headers[i]] = data[:, i]
 
     return dict
 
-# Parses an .xml schema file and returns all attribute labels and options (unique)
+# Parses an .xml schema file and returns all attribute labels 
+# and options (unique).
 # Returns a dictionary with the structure:
 # { 'Bush Approval': array(['Approve', 'Disapprove']),
 #  'Race': array(['Black', 'White', 'Other']),
@@ -38,21 +41,25 @@ def parse_attr(file_name):
         if variable.tag == "Category":
             continue
         class_name = variable.attrib['name']
-        attrs[class_name] = [child.attrib['name'] for child in variable.getchildren()]
+        attrs[class_name] = [child.attrib['name'] 
+                             for child in variable.getchildren()]
 
     return attrs
 
 
-# Parses an .xml schema file and returns the categorizable variable and class labels
+# Parses an .xml schema file and returns the categorizable variable 
+# and class labels.
 # Returns a tuple with the structure:
 # ('Vote', ['Obama', 'Mccain'])
 def parse_categ(file_name, use_numbers=False):
     xml = et.parse(file_name).getroot().find("Category")
     class_label = xml.attrib['name']
     if use_numbers:
-        return class_label, [child.attrib['type'] for child in xml.getchildren()]
+        return class_label, [child.attrib['type'] 
+                             for child in xml.getchildren()]
     else:
-        return class_label, [child.attrib['name'] for child in xml.getchildren()]
+        return class_label, [child.attrib['name'] 
+                             for child in xml.getchildren()]
 
 
 def get_categ_label(csv_filename):
@@ -72,7 +79,7 @@ def sanitize_data(attr, data):
         tempData = data[a]
         tempAttr = attr[a]
 
-        for i in range(len(data)):
+        for i in range(len(tempData)):
             if tempData[i].isdigit():
                 tempData[i] = ord(tempData[i]) - 1
             else:
@@ -129,42 +136,3 @@ def tree_from_xml(xml_filename):
     return C45Node(xml)
 
 
-# indent function courtesy of user ade on this stack overflow post:
-# https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python
-# (user profile: https://stackoverflow.com/users/97238/ade)
-def __indent(elem, level=0):
-    i = "\n" + level*"  "
-    j = "\n" + (level-1)*"  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-        for subelem in elem:
-            __indent(subelem, level+1)
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = j
-    else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = j
-    return elem
-
-
-def write_tree(c45root, tree_name):
-    xml_root = et.Element("Tree", name=tree_name)
-    __write_tree_r(c45root, xml_root)
-    __indent(xml_root)
-    tree = et.ElementTree(xml_root)
-    tree.write("test.xml")
-
-
-def __write_tree_r(c45root, xml_root):
-    if c45root.isLeaf:
-        et.SubElement(xml_root, "decision", choice=c45root.choice)
-        return
-
-    xml_child = et.SubElement(xml_root, "node", var=c45root.attribute)
-    for child_key in c45root.children:
-        child = c45root.children[child_key]
-        xml_edge = et.SubElement(xml_child, "edge", var=child_key)
-        __write_tree_r(child, xml_edge)
