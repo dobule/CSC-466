@@ -28,25 +28,29 @@ class C45Node(object):
              threshold -- Information gain of an attribute must be greater than
                 this number in order to split along that attribute.
           """
-        self.children = []
+        self.children = []      # Contains children in ordered list
+        self.childDict = {}     # Links children to entries in children
         self.isLeaf = False
         return
 
 
-    def build_from_xml(self, xml_node):
-        if xml_node.tag == "decision":
+    def build_from_elem_tree(self, root_node):
+        if root_node.tag == "decision":
             self.isLeaf = True
-            self.choice = xml_node.attrib['choice']
+            self.choice = root_node.attrib['choice']
             #self.p = xml_node.attrib['p']
             return
 
-        self.attribute = xml_node.attrib['var']
+        self.attribute = root_node.attrib['var']
         self.isLeaf = False
         self.children = []
 
-        for edge in xml_node.getchildren():
+        for edge in root_node.getchildren():
             newNode = C45Node()
-            self.children.append(newNode.build_from_xml(edge.getchildren()[0]))
+            self.childDict[edge.attrib['var']] = newNode
+            self.childDict[edge.attrib['num']] = newNode
+            self.children.append(
+             newNode.build_from_elem_tree(edge.getchildren()[0]))
 
         return
 
@@ -61,7 +65,11 @@ class C45Node(object):
         node = self
 
         while node.isLeaf == False:
-            node = node.children[item[node.attribute]].classify(item)
+            itemAttrVal = item[node.attribute]
+            if type(itemAttrVal) is int:
+                node = node.children[itemAttrVal]
+            else:
+                node = node.childDict[itemAttrVal]
 
         return node.choice
 
@@ -102,6 +110,7 @@ class C45Node(object):
                 C45Node.__to_xml_tree_r(child, xmlEdge, attr, categ)
 
         return xmlChild
+
 
     @staticmethod
     def __indent_xml_tree(elem, level=0):
