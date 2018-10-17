@@ -61,6 +61,21 @@ def parse_categ(file_name, use_numbers=False):
         return class_label, [child.attrib['name'] 
                              for child in xml.getchildren()]
 
+# Parses a .csv attribute restrictions file and returns them as an array
+def parse_rest(rest_file, data_file):
+    
+    val = np.genfromtext(rest_file, delimiter=',', dtype=int)
+    word = np.genfromtest(data_file, delimiter=',', dtype=str,
+                          max_rows=1)
+
+    return dict(zip(word, val))
+
+# Restricts attributes in data dictionary
+def rest_attr(data, rest):
+    for word in rest:
+        if word in data.keys():
+            data.pop(word)
+
 
 def get_categ_label(csv_filename):
     csv_file = open(csv_filename, 'r')
@@ -73,21 +88,32 @@ def get_categ_label(csv_filename):
 
 # Converts a dataset using strings to represent a value to using numbers
 # based off of a dictionary of attributes.
-def sanitize_data(attr, data):
+def sanitize_data(attr, data, categ):
 
     for a in attr.keys():
         tempData = data[a]
         tempAttr = attr[a]
 
-        for i in range(len(tempData)):
-            if tempData[i].isdigit():
-                tempData[i] = ord(tempData[i]) - 1
-            else:
+        if tempData[0].isdigit():
+            tempData = tempData.astype(int) 
+        else:
+            for i in range(len(tempData)):
                 tempData[i] = tempAttr.index(tempData[i])
-        data[a] = tempData
+  
+        data[a] = tempData.astype(int)
+        data[a] = data[a] - 1
+
+   
+    tempData = data[categ[0]]
+
+    if not tempData[0].isdigit():
+        for i in range(len(tempData)):
+            tempData[i] = categ[1].index(tempData[i])
+
+    data[categ[0]] = tempData.astype(int)
+    data[categ[0]] = data[categ[0]] - 1
 
     return data
-
 
 # Returns:
 # [

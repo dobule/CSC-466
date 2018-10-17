@@ -86,26 +86,20 @@ class C45Node(object):
                                       end=str(idxOfDecision + 1), 
                                       choice=C45Root.choice, 
                                       p=str(C45Root.p))
-            #decision.tail = spacing
             return decision
 
         xmlChild = et.SubElement(xmlRoot, "node", 
          choice=C45Root.attribute)
 
-
         varArr = attr[C45Root.attribute]
 
         for child in C45Root.children:
-            idxOfChild = C45Root.children.index(child)
-            xmlEdge = et.SubElement(xmlChild, "edge", 
-                                    var=str(varArr[idxOfChild]), 
-                                    num=str(idxOfChild+1))
-            #xmlEdge.text = spacing + '    '
-            #xmlEdge.tail = spacing + '  '
-            C45Node.__to_xml_tree_r(child, xmlEdge, attr, categ)
-
-        #xmlChild.text = spacing + '    ' 
-        #xmlChild.tail = spacing
+            if type(child) is C45Node:
+                idxOfChild = C45Root.children.index(child)
+                xmlEdge = et.SubElement(xmlChild, "edge", 
+                                        var=str(varArr[idxOfChild]), 
+                                        num=str(idxOfChild+1))
+                C45Node.__to_xml_tree_r(child, xmlEdge, attr, categ)
 
         return xmlChild
 
@@ -129,6 +123,8 @@ class C45Node(object):
            Constructs a decision tree using the C4.5 algorithm.
         """
 
+        #print data
+
         # Check termination conditions
         if self.__check_homogenous_data(data[categ[0]]):
             self.__set_to_leaf(data[categ[0]], categ, homogenous=True)
@@ -150,8 +146,14 @@ class C45Node(object):
             newAttr = attr.copy()
             newAttr.pop(splitAttr, None)
 
+            #nprint self.children
+
+            #for d in splitData:
+                #print d
+                #print
+
             for i in range(len(splitData)):
-                if len(splitData) > 0:
+                if len(splitData[i][categ[0]]) > 0:
                     newNode = C45Node()
                     newNode.C45_algorithm(newAttr, splitData[i], categ, threshold)
                     self.children[i] = newNode 
@@ -178,22 +180,18 @@ class C45Node(object):
 
         self.isLeaf = True
 
+        #print data
+
         if homogenous == True:
             self.choice = categ[1][data[0]]
             self.p = 1.0
         else:
+            # self.choice is numeric to get p value
             self.choice = self.__find_most_frequent_label(data)
             unique, counts = np.unique(data, return_counts=True)
             countDict = dict(zip(unique, counts))
             self.p = float(countDict[self.choice]) / len(data)
-
-        return
-
-
-    def __add_child(self, attr, data, categ, threshold, idx):
-        """ Adds a child to current node """
-        node = C45Node(attr, data, categ, threshold)
-        self.children[idx] = node
+            self.choice = categ[1][self.choice]
         return
 
 
@@ -220,20 +218,20 @@ class C45Node(object):
         gainRatio = {}
         best = 0
 
-        print("Entropy of dataset: ", p0)
+        #print("Entropy of dataset: ", p0)
 
         # Find the entropy for each attribute in data
         for a in attr.keys():
             pA[a] = C45Node.__entropy(data[categ[0]], data[a])
             gain[a] = p0 - pA[a]
 
-            print(a, pA[a], gain[a])
+            #print(a, pA[a], gain[a])
             #gainRatio[a] = gain[a] / pA[a]
 
         # Find attribute with best gain ratio
         best = max(gain, key=gain.get)
-        print("Best: ", best, gain[best])
-        print()
+        #print("Best: ", best, gain[best])
+        #print()
 
         if gain[best] > threshold:
             return best
@@ -287,22 +285,25 @@ class C45Node(object):
            data -- The standard data
         """
 
+        #print attr
+
         # An array the same length as attr[1] and values being data dictionaries
         splitData = range(len(attr[1]))
-        # Remove the list of attributes from the data dictionary
+        # Get list of attributes from the data dictionary
         attrVals = data[attr[0]]
 
         # Initialize split data dictionaries
-        for idx in range(len(splitData)):
+        for i in range(len(splitData)):
             dataPart = {}
             # Initialize keys in a data dictionary in splitData
             for key in data.keys():
                 dataPart[key] = []
-            splitData[idx] = dataPart
+            splitData[i] = dataPart
 
         # Iterate over indecies of data values
         for i in range(len(attrVals)):
             # Find the data set to add to
+            #print attrVals[i]
             dataSet = splitData[int(attrVals[i])]
 
             # Iterate over key values pairs in data and add data points
