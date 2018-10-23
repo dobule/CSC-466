@@ -8,6 +8,8 @@ import numpy as np
 import math
 import xml.etree.ElementTree as et
 
+DEFAULT_THRESHOLD = 0.6
+
 class C45Node(object):
 
     def __init__(self):

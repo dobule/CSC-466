@@ -115,6 +115,7 @@ def sanitize_data(attr, data, categ):
 
     return data
 
+
 # Returns:
 # [
 #  {

@@ -8,17 +8,17 @@
 import sys
 from C45Util import *
 from C45Node import DEFAULT_THRESHOLD
-from domains import ELECTIONS_DOMAIN
 
-def do_evaluation(csv_filename, n, restrictions_filename=None):
+
+def do_evaluation(csv_filename, n, domain_filename, restrictions_filename=None):
     restrictions = None
     if restrictions_filename:
-        restrictions = parse_restrictions(restrictions_filename)
+        restrictions = parse_rest(restrictions_filename)
 
-    categ = parse_categ("", xml_string=ELECTIONS_DOMAIN)
-    attr = parse_attr("", xml_string=ELECTIONS_DOMAIN)
+    categ = parse_categ(domain_filename)
+    attr = parse_attr(domain_filename)
     input_data = parse_data(csv_filename)
-    evaluation_data = split_eval_data(input_data, n)
+    evaluation_data = split_data(input_data, n)
 
     for data_set in evaluation_data:
         tree = C45Node()
@@ -28,6 +28,7 @@ def do_evaluation(csv_filename, n, restrictions_filename=None):
         # Build tree via induction
         # Classify validation data
         #
+
 
 def n_fold_cross_validation(attr, data, tree):
     return
@@ -74,8 +75,8 @@ def print_results(diagnostics, recall, precision, pf, f):
 
 
 def main(argv):
-    if len(argv) < 3 or len(argv) > 4 or (not argv[2].isdigit() and argv[2] != '-1'):
-        print("Invalid usage of Validation.py\nUsage is 'python Validation.py <CSVFile> <N> "
+    if len(argv) < 4 or len(argv) > 5 or (not argv[2].isdigit() and argv[2] != '-1'):
+        print("Invalid usage of Validation.py\nUsage is 'python Validation.py <CSVFile> <N> <Domain File>"
               "<(optional) RestrFile>")
         exit(1)
 
@@ -83,10 +84,10 @@ def main(argv):
         print("Cannot do n-fold cross validation with a value of 1")
         exit(1)
 
-    if len(argv) == 4:
-        do_evaluation(argv[1], int(argv[2]), argv[3])
+    if len(argv) == 5:
+        do_evaluation(argv[1], int(argv[2]), argv[3], argv[4])
     else:
-        do_evaluation(argv[1], int(argv[2]))
+        do_evaluation(argv[1], int(argv[2]), argv[3])
 
 
 if __name__ == "__main__":
