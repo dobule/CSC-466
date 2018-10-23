@@ -15,7 +15,7 @@ THRESHOLD = 0.10001
 
 def main():
     if not (len(sys.argv) in [3, 4]):
-        print ("python InduceC45.py <domainFile.xml> " + 
+        print("python InduceC45.py <domainFile.xml> " +
         "<trainingSetFile.csv> [<restrictions.csv>]")
         return
 
@@ -35,8 +35,8 @@ def main():
     tree.C45_algorithm(attr, data, categ, THRESHOLD)
     xmltree = tree.to_xml_tree("C45DecisionTree")
 
-    print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-    xmltree.write(sys.stdout)
+    print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+    xmltree.write("C45DecisionTree.xml")
 
 
 if __name__=="__main__":
