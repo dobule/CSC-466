@@ -13,7 +13,7 @@ from C45Node import DEFAULT_THRESHOLD
 def do_evaluation(csv_filename, n, domain_filename, restrictions_filename=None):
     restrictions = None
     if restrictions_filename:
-        restrictions = parse_rest(restrictions_filename)
+        restrictions = parse_rest(restrictions_filename, csv_filename)
 
     categ = parse_categ(domain_filename)
     attr = parse_attr(domain_filename)
