@@ -78,10 +78,6 @@ class C45Node(object):
         while node.isLeaf == False:
             itemAttrVal = item[node.attribute]
             if itemAttrVal.isdigit():
-                print itemAttrVal
-                print len(node.children)
-                print node.attribute
-                print node.attrList
                 node = node.children[int(itemAttrVal) - 1]
             else:
                 node = node.children[node.attrList.index(itemAttrVal)]
@@ -107,13 +103,13 @@ class C45Node(object):
         if C45Root.isLeaf == True:
             idxOfDecision = int(C45Root.choice[0])
             decision =  et.SubElement(xmlRoot, "decision", 
-                                      end=str(idxOfDecision + 1), 
+                                      end=str(idxOfDecision), 
                                       choice=C45Root.choice[1], 
                                       p=str(C45Root.p))
             return decision
 
         xmlChild = et.SubElement(xmlRoot, "node", 
-         choice=C45Root.attribute)
+         var=C45Root.attribute)
 
         for child in C45Root.children:
             if type(child) is C45Node:
