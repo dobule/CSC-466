@@ -165,7 +165,8 @@ class C45Node(object):
             return
 
         # Select splitting attribute
-        splitAttr = self.__select_splitting_attribute(attr, data, categ, threshold)
+        splitAttr = self.__select_splitting_attribute(attr, data, categ,
+                                                                    threshold)
 
         if splitAttr is None:
             self.__set_to_leaf(data[categ[0]], categ)
