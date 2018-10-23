@@ -98,7 +98,7 @@ def sanitize_data(attr, data, categ):
             tempData = tempData.astype(int) 
         else:
             for i in range(len(tempData)):
-                tempData[i] = tempAttr.index(tempData[i])
+                tempData[i] = tempAttr.index(tempData[i]) + 1
   
         data[a] = tempData.astype(int)
         data[a] = data[a] - 1
