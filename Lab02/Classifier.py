@@ -21,16 +21,21 @@ def main(argv):
         print_results(diagnostics)
 
 
-def classify(csv_filename, xml_filename):
+def classify(csv_filename, xml_filename, input_data=None):
 
     elem_tree = et.parse(xml_filename).getroot().getchildren()[0]
 
     tree = C45Node()
     tree.build_from_elem_tree(elem_tree)
-    data = parse_data(csv_filename)
+    data = None
+    if input_data:
+        data = input_data
+    else:
+        data = parse_data(csv_filename)
+
     entry_count = len(list(data.values())[0])
     categ = get_categ_label(csv_filename)
-    diagnostics = diagnostics = create_diagnostics(entry_count, 0, 0, 0, 0, 0)
+    diagnostics = create_diagnostics(entry_count, 0, 0, 0, 0, 0)
 
     for i in range(entry_count):
         itemized_entry = itemize_entry(data, i)
@@ -45,15 +50,17 @@ def classify(csv_filename, xml_filename):
 
         if categ in itemized_entry:
             is_correct = (itemized_entry[categ] in result)
-
             if is_correct:
                 diagnostics['correct'] = diagnostics['correct'] + 1
+                diagnostics['confusion_matrix'][('true_positives', 'true_negatives')[result[1] == 'Obama']] += 1
             else:
                 diagnostics['incorrect'] = diagnostics['incorrect'] + 1
+                diagnostics['confusion_matrix'][('false_positives', 'false_negatives')[result[1] == 'Obama']] += 1
 
 
-            verbose_message = "[{}] {} : {} | {}".format(i, itemized_entry, 
-             result, ('Incorrect', 'Correct')[is_correct])
+
+            verbose_message = "[{}] {} : {} | {}".format(i, itemized_entry,
+            result, ('Incorrect', 'Correct')[is_correct])
             silent_message = "[{}]\t{}\tWas {}\t| Should be {}".format(i,
             ('Incorrect', 'Correct\t')[is_correct], result,
              itemized_entry[categ])
@@ -75,7 +82,6 @@ def classify(csv_filename, xml_filename):
         diagnostics['incorrect'] = 'N/a'
         diagnostics['accuracy'] = 'N/a'
         diagnostics['error_rate'] = 'N/a'
-
     return diagnostics
 
 

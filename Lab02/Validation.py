@@ -8,6 +8,8 @@
 import sys
 from C45Util import *
 from C45Node import DEFAULT_THRESHOLD
+from Classifier import classify
+from InduceC45 import induce_c45
 
 
 def do_evaluation(csv_filename, n, domain_filename, restrictions_filename=None):
@@ -15,19 +17,49 @@ def do_evaluation(csv_filename, n, domain_filename, restrictions_filename=None):
     if restrictions_filename:
         restrictions = parse_rest(restrictions_filename, csv_filename)
 
-    categ = parse_categ(domain_filename)
-    attr = parse_attr(domain_filename)
+
     input_data = parse_data(csv_filename)
+    diagnostics = create_diagnostics(0, 0, 0, 0, 0, 0)
+
     evaluation_data = split_data(input_data, n)
 
-    for data_set in evaluation_data:
+    for eval_data_set in evaluation_data:
+        training_data = eval_data_set['training']
+        validation_data = eval_data_set['validation']
+        xml_filename = induce_c45(domain_filename, csv_filename, restrictions_filename, input_data=training_data)
         tree = C45Node()
-        tree.C45_algorithm(attr, data_set['training'], categ, DEFAULT_THRESHOLD)
+        entry_count = len(list(validation_data.values())[0])
+        for i in range(entry_count):
+            itemized_entry = itemize_entry(validation_data, i)
+            validation_diagnostics = classify(csv_filename, xml_filename, validation_data)
+            diagnostics = update_diagnostics(diagnostics, validation_diagnostics)
 
-        return
-        # Build tree via induction
-        # Classify validation data
-        #
+
+    results = {
+        "accuracy": accuracy(diagnostics),
+        "error_rate": error_rate(diagnostics),
+        "precision": precision(diagnostics['confusion_matrix']['true_positives'], diagnostics['confusion_matrix']['false_positives']),
+        "recall": recall(diagnostics['confusion_matrix']['true_positives'], diagnostics['confusion_matrix']['false_negatives']),
+        "f_measure": f_measure(diagnostics['confusion_matrix']['true_positives'], diagnostics['confusion_matrix']['false_positives'], diagnostics['confusion_matrix']['false_negatives']),
+        "pf_measure": pf_measure(diagnostics['confusion_matrix']['false_positives'], diagnostics['confusion_matrix']['true_negatives'])
+    }
+
+    print_results(diagnostics, results['recall'], results['precision'], results['pf_measure'], results['f_measure'])
+
+
+def update_diagnostics(diagnostics, validation_diagnostics):
+    diagnostics['records_processed'] += validation_diagnostics['records_processed']
+    diagnostics['correct'] += validation_diagnostics['correct']
+    diagnostics['incorrect'] += validation_diagnostics['incorrect']
+    diagnostics['accuracy'] += validation_diagnostics['accuracy']
+    diagnostics['error_rate'] += validation_diagnostics['error_rate']
+    diagnostics['errors'] += validation_diagnostics['errors']
+    diagnostics['confusion_matrix']['true_positives'] += validation_diagnostics['confusion_matrix']['true_positives']
+    diagnostics['confusion_matrix']['true_negatives'] += validation_diagnostics['confusion_matrix']['true_negatives']
+    diagnostics['confusion_matrix']['false_positives'] += validation_diagnostics['confusion_matrix']['false_positives']
+    diagnostics['confusion_matrix']['false_negatives'] += validation_diagnostics['confusion_matrix']['false_negatives']
+
+    return diagnostics
 
 
 def n_fold_cross_validation(attr, data, tree):
@@ -59,14 +91,16 @@ def pf_measure(false_positives, true_negatives):
 
 
 def print_confusion_matrix(confusion_matrix):
+    print("\n=========== Confusion Matrix ===========")
     print("\tT\tF")
     print("P\t{}\t{}".format(confusion_matrix['true_positives'], confusion_matrix['false_positives']))
     print("N\t{}\t{}".format(confusion_matrix['true_negatives'], confusion_matrix['false_negatives']))
+    print("=========================================\n")
 
 
 def print_results(diagnostics, recall, precision, pf, f):
     print("\n\n=================================")
-    print_confusion_matrix(diagnostics['confustion_matrix'])
+    print_confusion_matrix(diagnostics['confusion_matrix'])
     print("Recall: {}".format(recall))
     print("Precision: {}".format(precision))
     print("PF Measure: {}".format(pf))
@@ -77,7 +111,7 @@ def print_results(diagnostics, recall, precision, pf, f):
 def main(argv):
     if len(argv) < 4 or len(argv) > 5 or (not argv[2].isdigit() and argv[2] != '-1'):
         print("Invalid usage of Validation.py\nUsage is 'python Validation.py <CSVFile> <N> <Domain File>"
-              "<(optional) RestrFile>")
+              " <(optional) RestrFile>")
         exit(1)
 
     if argv[2] == '1':
