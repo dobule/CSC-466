@@ -108,7 +108,8 @@ def sanitize_data(attr, data, categ):
 
     if not tempData[0].isdigit():
         for i in range(len(tempData)):
-            tempData[i] = categ[1].index(tempData[i])
+            tempData[i] = categ[1].index(tempData[i]) + 1
+
 
     data[categ[0]] = tempData.astype(int)
     data[categ[0]] = data[categ[0]] - 1
