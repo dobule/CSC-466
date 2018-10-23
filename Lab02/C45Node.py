@@ -12,44 +12,52 @@ class C45Node(object):
 
     def __init__(self):
         """
-             Constructor for C45Node
+        Variables in all nodes:
+            isLeaf  --  Boolean value that states whether the node is
+                a leaf or not (if not then decision node)
 
-             attr -- Dictionary that contains an array of categories for each
-                attribute.
+        Variabls in decision nodes:
+            children -- An array of other C45Nodes, with each index
+                corresponding to a given attribute values at the same index in
+                attrList.
 
-             data -- a dictionary with the attribute being the key in data 
-              and an array of all values in that attribute. Each datapoint 
-              is in the same index across all attribute arrays.
+            attribute -- The attribute that the node decides on as a string.
 
-             categ -- Tuple with attribute name in index 0 and an array of values
-                that attribute in index 1. This parameter specifies the attribue
-                that the decision tree classifies items into.
+            attrList  -- A list of attribute values as strings, corresponding to
+                the nodes in children.
 
-             threshold -- Information gain of an attribute must be greater than
-                this number in order to split along that attribute.
-          """
+        Variables in leaf nodes:
+            p -- The proportion of data points with the leaf's choice value in
+                the data set given to the leaf when it was created
+
+            choice -- A tuple of the form (num, "str"), indicating the two
+                corresponding choice values of the node.
+        """
+        
         self.children = []      # Contains children in ordered list
-        self.childDict = {}     # Links children to entries in children
-        self.isLeaf = False
+        self.attrList = []      # Holds the attr strings of the children
+        self.isLeaf = False     # States whether the node is a leaf
         return
 
 
     def build_from_elem_tree(self, root_node):
         if root_node.tag == "decision":
             self.isLeaf = True
-            self.choice = root_node.attrib['choice']
+            self.choice = (root_node.attrib['end'], 
+                           root_node.attrib['choice'])
             #self.p = xml_node.attrib['p']
             return
 
         self.attribute = root_node.attrib['var']
         self.isLeaf = False
         self.children = []
+        self.attrList = []
 
         for edge in root_node.getchildren():
             newNode = C45Node()
-            self.childDict[edge.attrib['var']] = newNode
-            self.childDict[edge.attrib['num']] = newNode
-            self.children.append(
+            self.attrList.insert(int(edge.attrib['num']),
+                                 edge.attrib['var'])
+            self.children.insert(int(edge.attrib['num']),
              newNode.build_from_elem_tree(edge.getchildren()[0]))
 
         return
@@ -59,55 +67,55 @@ class C45Node(object):
         """
            Takes a datapoint and classifies it using the built-in tree
 
-           item -- a dictionary or attribute : value pairs
+           item -- a dictionary of attribute : value pairs. Each value 
+            should be a single integer or string.
         """
 
         node = self
 
         while node.isLeaf == False:
             itemAttrVal = item[node.attribute]
-            if type(itemAttrVal) is int:
-                node = node.children[itemAttrVal]
+            if itemAttrVal.isdigit():
+                node = node.children[int(itemAttrVal) - 1]
             else:
-                node = node.childDict[itemAttrVal]
+                node = node.children[node.attrList.index(itemAttrVal)]
 
         return node.choice
 
-    def to_xml_tree(self, treeName, attr, categ):
+
+    def to_xml_tree(self, treeName):
         """
            Returns the tree as an xml element tree
         """
 
         xmlRoot = et.Element("Tree", name=treeName)
-        C45Node.__to_xml_tree_r(self, xmlRoot, attr, categ)       
+        C45Node.__to_xml_tree_r(self, xmlRoot)       
         C45Node.__indent_xml_tree(xmlRoot)
         return et.ElementTree(xmlRoot)
 
 
     @staticmethod
-    def __to_xml_tree_r(C45Root, xmlRoot, attr, categ):
+    def __to_xml_tree_r(C45Root, xmlRoot):
        
 
         if C45Root.isLeaf == True:
-            idxOfDecision = categ[1].index(C45Root.choice)
+            idxOfDecision = int(C45Root.choice[0])
             decision =  et.SubElement(xmlRoot, "decision", 
                                       end=str(idxOfDecision + 1), 
-                                      choice=C45Root.choice, 
+                                      choice=C45Root.choice[1], 
                                       p=str(C45Root.p))
             return decision
 
         xmlChild = et.SubElement(xmlRoot, "node", 
          choice=C45Root.attribute)
 
-        varArr = attr[C45Root.attribute]
-
         for child in C45Root.children:
             if type(child) is C45Node:
                 idxOfChild = C45Root.children.index(child)
                 xmlEdge = et.SubElement(xmlChild, "edge", 
-                                        var=str(varArr[idxOfChild]), 
+                                        var=str(C45Root.attrList[idxOfChild]), 
                                         num=str(idxOfChild+1))
-                C45Node.__to_xml_tree_r(child, xmlEdge, attr, categ)
+                C45Node.__to_xml_tree_r(child, xmlEdge)
 
         return xmlChild
 
@@ -129,10 +137,22 @@ class C45Node(object):
 
     def C45_algorithm(self, attr, data, categ, threshold):
         """
-           Constructs a decision tree using the C4.5 algorithm.
-        """
+        Constructs a decision tree using the C4.5 algorithm.
 
-        #print data
+        attr -- Dictionary that contains an array of categories for each
+            attribute.
+
+        data -- a dictionary with the attribute being the key in data 
+            and an array of all values in that attribute. Each datapoint 
+            is in the same index across all attribute arrays.
+
+        categ -- Tuple with attribute name in index 0 and an array of values
+            that attribute in index 1. This parameter specifies the attribue
+            that the decision tree classifies items into.
+
+         threshold -- Information gain of an attribute must be greater than
+            this number in order to split along that attribute.
+        """
 
         # Check termination conditions
         if self.__check_homogenous_data(data[categ[0]]):
@@ -150,16 +170,11 @@ class C45Node(object):
         else:
             # Construct tree
             self.attribute = splitAttr
+            self.attrList = attr[splitAttr]
             self.children = range(len(attr[splitAttr]))
             splitData = self.__split_dataset((splitAttr, attr[splitAttr]), data)
             newAttr = attr.copy()
-            newAttr.pop(splitAttr, None)
-
-            #nprint self.children
-
-            #for d in splitData:
-                #print d
-                #print
+            curAttr = newAttr.pop(splitAttr, None)
 
             for i in range(len(splitData)):
                 if len(splitData[i][categ[0]]) > 0:
@@ -167,9 +182,11 @@ class C45Node(object):
                     newNode.C45_algorithm(newAttr, splitData[i], categ, threshold)
                     self.children[i] = newNode 
                 else:
-                    self.children[i] = None
+                    newNode.__set_to_leaf(data[categ[0]], categ)
+                    self.children[i] = newNode
 
         return
+
 
     @staticmethod
     def __check_homogenous_data(data):
@@ -180,19 +197,18 @@ class C45Node(object):
                 return False
         return True
 
+
     def __set_to_leaf(self, data, categ, homogenous=False):
         """
            Sets the current node to a leaf.
 
-           data -- An array of values
+           data -- A single array of values
         """
 
         self.isLeaf = True
 
-        #print data
-
         if homogenous == True:
-            self.choice = categ[1][data[0]]
+            self.choice = (str(data[0] + 1), categ[1][data[0]])
             self.p = 1.0
         else:
             # self.choice is numeric to get p value
@@ -200,7 +216,7 @@ class C45Node(object):
             unique, counts = np.unique(data, return_counts=True)
             countDict = dict(zip(unique, counts))
             self.p = float(countDict[self.choice]) / len(data)
-            self.choice = categ[1][self.choice]
+            self.choice = (str(self.choice + 1), categ[1][self.choice])
         return
 
 
