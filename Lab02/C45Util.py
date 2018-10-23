@@ -195,3 +195,20 @@ def itemize_entry(data, idx):
         entry[key] = data[key][idx]
 
     return entry
+
+
+def create_diagnostics(records_processed, correct="N/a", incorrect="N/a", accuracy="N/a", error_rate="N/a", errors="N/a"):
+    return {
+        'records_processed': records_processed,
+        'correct': correct,
+        'incorrect': incorrect,
+        'accuracy': accuracy,
+        'error_rate': error_rate,
+        'errors': errors,
+        'confusion_matrix': {
+            "true_positives": 0,
+            "true_negatives": 0,
+            "false_positives": 0,
+            "false_negatives": 0
+        }
+    }

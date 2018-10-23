@@ -30,14 +30,7 @@ def classify(csv_filename, xml_filename):
     data = parse_data(csv_filename)
     entry_count = len(list(data.values())[0])
     categ = get_categ_label(csv_filename)
-    diagnostics = {
-        'num_processed': 0,
-        'correct': 0,
-        'incorrect': 0,
-        'accuracy': 0.0,
-        'error_rate': 0.0,
-        'errors': 0
-    }
+    diagnostics = diagnostics = create_diagnostics(entry_count, 0, 0, 0, 0, 0)
 
     for i in range(entry_count):
         itemized_entry = itemize_entry(data, i)
@@ -48,7 +41,6 @@ def classify(csv_filename, xml_filename):
             print(("[{}] Error classifying row!".format(i), 
                    "[{}]\tError!".format(i))[SILENT_RUN])
             diagnostics['errors'] = diagnostics['errors'] + 1
-            #print(itemized_entry)
             continue
 
         if categ in itemized_entry:
@@ -59,7 +51,6 @@ def classify(csv_filename, xml_filename):
             else:
                 diagnostics['incorrect'] = diagnostics['incorrect'] + 1
 
-            diagnostics['num_processed'] = diagnostics['num_processed'] + 1
 
             verbose_message = "[{}] {} : {} | {}".format(i, itemized_entry, 
              result, ('Incorrect', 'Correct')[is_correct])
@@ -75,9 +66,9 @@ def classify(csv_filename, xml_filename):
 
     # Calculate accuracy and error rate after classifying data set
     diagnostics['accuracy'] = (float(diagnostics['correct']) / 
-                               diagnostics['num_processed'] * 100)
+                               diagnostics['records_processed'] * 100)
     diagnostics['error_rate'] = (float(diagnostics['incorrect']) / 
-                                 diagnostics['num_processed'] * 100)
+                                 diagnostics['records_processed'] * 100)
 
     if categ not in itemized_entry:
         diagnostics['correct'] = 'N/a'
@@ -90,7 +81,7 @@ def classify(csv_filename, xml_filename):
 
 def print_results(diagnostics):
     print("\n\n======================================")
-    print("Records Processed: ", diagnostics['num_processed'])
+    print("Records Processed: ", diagnostics['records_processed'])
     print("Records Not Processed:", diagnostics['errors'])
     print("# Correct: ", diagnostics['correct'])
     print("# Incorrect: ", diagnostics['incorrect'])
