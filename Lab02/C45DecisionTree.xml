@@ -1,29 +1,20 @@
 <Tree name="C45DecisionTree">
-  <node var="Gender">
-    <edge num="1" var="Male">
-      <node var="Family Income">
-        <edge num="1" var="Less than 30000">
+  <node var="Bush Approval">
+    <edge num="1" var="Approve">
+      <decision choice="McCain" end="2" p="1.0" />
+    </edge>
+    <edge num="2" var="Disapprove">
+      <node var="Religion">
+        <edge num="1" var="Protestant">
           <decision choice="Obama" end="1" p="1.0" />
         </edge>
-        <edge num="2" var="30000-49999">
-          <decision choice="Obama" end="1" p="1.0" />
+        <edge num="2" var="Catholic">
+          <decision choice="Obama" end="1" p="0.8181818181818182" />
         </edge>
-        <edge num="3" var="50000-74999">
-          <decision choice="McCain" end="0" p="1.0" />
-        </edge>
-        <edge num="4" var="75000-99999">
-          <decision choice="Obama" end="1" p="0.625" />
-        </edge>
-        <edge num="4" var="75000-99999">
-          <decision choice="Obama" end="1" p="0.625" />
-        </edge>
-        <edge num="6" var="150000+">
-          <decision choice="Obama" end="1" p="1.0" />
+        <edge num="2" var="Catholic">
+          <decision choice="Obama" end="1" p="0.8181818181818182" />
         </edge>
       </node>
-    </edge>
-    <edge num="2" var="Female">
-      <decision choice="McCain" end="0" p="1.0" />
     </edge>
   </node>
 </Tree>
