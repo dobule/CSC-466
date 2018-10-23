@@ -175,7 +175,7 @@ class C45Node(object):
             # Construct tree
             self.attribute = splitAttr
             self.attrList = attr[splitAttr]
-            self.children = range(len(attr[splitAttr]))
+            self.children = list(range(len(attr[splitAttr])))
             splitData = self.__split_dataset((splitAttr, attr[splitAttr]), data)
             newAttr = attr.copy()
             curAttr = newAttr.pop(splitAttr, None)
@@ -308,7 +308,7 @@ class C45Node(object):
         """
 
         # An array the same length as attr[1] and values being data dictionaries
-        splitData = range(len(attr[1]))
+        splitData = list(range(len(attr[1])))
         # Get list of attributes from the data dictionary
         attrVals = data[attr[0]]
 
