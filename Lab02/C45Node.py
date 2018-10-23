@@ -45,7 +45,7 @@ class C45Node(object):
             self.isLeaf = True
             self.choice = (root_node.attrib['end'], 
                            root_node.attrib['choice'])
-            #self.p = xml_node.attrib['p']
+            self.p = root_node.attrib['p']
             return
 
         self.attribute = root_node.attrib['var']
@@ -55,10 +55,12 @@ class C45Node(object):
 
         for edge in root_node.getchildren():
             newNode = C45Node()
-            self.attrList.insert(int(edge.attrib['num']),
+            self.attrList.insert(int(edge.attrib['num']) - 1,
                                  edge.attrib['var'])
-            self.children.insert(int(edge.attrib['num']),
-             newNode.build_from_elem_tree(edge.getchildren()[0]))
+
+            self.children.insert(int(edge.attrib['num']) - 1,
+                                 newNode)
+            newNode.build_from_elem_tree(edge.getchildren()[0])
 
         return
 
@@ -76,6 +78,10 @@ class C45Node(object):
         while node.isLeaf == False:
             itemAttrVal = item[node.attribute]
             if itemAttrVal.isdigit():
+                print itemAttrVal
+                print len(node.children)
+                print node.attribute
+                print node.attrList
                 node = node.children[int(itemAttrVal) - 1]
             else:
                 node = node.children[node.attrList.index(itemAttrVal)]
@@ -243,20 +249,13 @@ class C45Node(object):
         gainRatio = {}
         best = 0
 
-        #print("Entropy of dataset: ", p0)
-
         # Find the entropy for each attribute in data
         for a in attr.keys():
             pA[a] = C45Node.__entropy(data[categ[0]], data[a])
             gain[a] = p0 - pA[a]
 
-            #print(a, pA[a], gain[a])
-            #gainRatio[a] = gain[a] / pA[a]
-
         # Find attribute with best gain ratio
         best = max(gain, key=gain.get)
-        #print("Best: ", best, gain[best])
-        #print()
 
         if gain[best] > threshold:
             return best
@@ -310,8 +309,6 @@ class C45Node(object):
            data -- The standard data
         """
 
-        #print attr
-
         # An array the same length as attr[1] and values being data dictionaries
         splitData = range(len(attr[1]))
         # Get list of attributes from the data dictionary
@@ -328,7 +325,6 @@ class C45Node(object):
         # Iterate over indecies of data values
         for i in range(len(attrVals)):
             # Find the data set to add to
-            #print attrVals[i]
             dataSet = splitData[int(attrVals[i])]
 
             # Iterate over key values pairs in data and add data points

@@ -162,3 +162,9 @@ def tree_from_xml(xml_filename):
     return C45Node(xml)
 
 
+def itemize_entry(data, idx):
+    entry = {}
+    for key in data:
+        entry[key] = data[key][idx]
+
+    return entry
