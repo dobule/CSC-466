@@ -43,6 +43,7 @@ class C45Node(object):
 
 
     def build_from_elem_tree(self, root_node):
+        """ Create a tree from an element tree """
         if root_node.tag == "decision":
             self.isLeaf = True
             self.choice = (root_node.attrib['end'], 
@@ -69,10 +70,11 @@ class C45Node(object):
 
     def classify(self, item):
         """
-           Takes a datapoint and classifies it using the built-in tree
+            Takes a datapoint and classifies it using the tree extending
+                from the current node.
 
-           item -- a dictionary of attribute : value pairs. Each value 
-            should be a single integer or string.
+            item -- a dictionary of attribute : value pairs. Each value 
+                should be a single integer or string.
         """
 
         node = self
@@ -303,7 +305,7 @@ class C45Node(object):
            attr -- A tuple with the attribute name in index 0 and the values
               of the attribute as a list in index 1
 
-           data -- The standard data
+           data -- Data dictionary
         """
 
         # An array the same length as attr[1] and values being data dictionaries

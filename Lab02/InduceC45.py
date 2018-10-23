@@ -9,9 +9,10 @@
 
 import sys
 from C45Node import C45Node
+from C45Node import DEFAULT_THRESHOLD
 from C45Util import *
 
-THRESHOLD = 0.10001
+THRESHOLD = DEFAULT_THRESHOLD
 
 def main():
     if not (len(sys.argv) in [3, 4]):
@@ -36,7 +37,7 @@ def main():
     xmltree = tree.to_xml_tree("C45DecisionTree")
 
     print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-    xmltree.write("C45DecisionTree.xml")
+    xmltree.write(sys.stdout)
 
 
 if __name__=="__main__":
