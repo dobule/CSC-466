@@ -101,11 +101,9 @@ class C45Node(object):
     @staticmethod
     def __to_xml_tree_r(C45Root, xmlRoot):
        
-
         if C45Root.isLeaf == True:
-            idxOfDecision = int(C45Root.choice[0])
             decision =  et.SubElement(xmlRoot, "decision", 
-                                      end=str(idxOfDecision), 
+                                      end=C45Root.choice[0], 
                                       choice=C45Root.choice[1], 
                                       p=str(C45Root.p))
             return decision
