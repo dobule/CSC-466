@@ -36,7 +36,7 @@ def main():
     xmltree = tree.to_xml_tree("C45DecisionTree")
 
     print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-    xmltree.write(sys.stdout)
+    xmltree.write("C45DecisionTree.xml")
 
 
 if __name__=="__main__":
