@@ -61,11 +61,12 @@ def parse_categ(file_name, use_numbers=False):
         return class_label, [child.attrib['name'] 
                              for child in xml.getchildren()]
 
+
 # Parses a .csv attribute restrictions file and returns them as an array
 def parse_rest(rest_file, data_file):
     
-    val = np.genfromtext(rest_file, delimiter=',', dtype=int)
-    word = np.genfromtest(data_file, delimiter=',', dtype=str,
+    val = np.genfromtxt(rest_file, delimiter=',', dtype=int)
+    word = np.genfromtxt(data_file, delimiter=',', dtype=str,
                           max_rows=1)
 
     return dict(zip(word, val))
@@ -127,30 +128,55 @@ def sanitize_data(attr, data, categ):
 #  },
 #  ...
 # ]
-def split_data(input_data):
-    datasets = []
-    for i in range(SPLIT_ITERATIONS):
-        datasets.append(__build_set(input_data))
+def split_data(input_data, n):
+    data_sets = []
+    if n == -1:
+        data_sets.append(__build_ab1_set(input_data))
+        return data_sets
 
-    return datasets
+    for i in range(n):
+        data_sets.append(__build_set(input_data, n))
+
+    return data_sets
 
 
 # Builds one set of training and validation data from 'input_data'
-def __build_set(input_data):
+def __build_set(input_data, n):
     training = {}
     validation = {}
-    set_size = len(input_data.values()[0])
-    validation_count = set_size // SPLIT_RATIO
-    rand_indexes = []
-    while len(rand_indexes) < validation_count:
+    set_size = len(list(input_data.values())[0])
+    slice_size = set_size // n
+    rand_indices = []
+
+    # Iterate until the number of values in rand_indices is the same size as one slice of the data set
+    while len(rand_indices) < slice_size:
         rand_index = np.random.randint(set_size)
-        if rand_index in rand_indexes:
+        # if the index already exists in rand_indices, skip it and try again
+        if rand_index in rand_indices:
             continue
-        rand_indexes.append(rand_index)
+
+        # add the random index to rand_indices
+        rand_indices.append(rand_index)
 
     for key in input_data:
-        validation[key] = [input_data[key][i] for i in rand_indexes]
-        training[key] = np.delete(input_data[key], rand_indexes)
+        validation[key] = [input_data[key][i] for i in rand_indices]
+        training[key] = np.delete(input_data[key], rand_indices)
+
+    return {
+        "training": training,
+        "validation": validation
+    }
+
+
+def __build_ab1_set(input_data):
+    training = {}
+    validation = {}
+    set_size = len(list(input_data.values())[0])
+    index = np.random.randint(set_size)
+
+    for key in input_data:
+        validation[key] = input_data[key][index]
+        training[key] = np.delete(input_data[key], index)
 
     return {
         "training": training,
